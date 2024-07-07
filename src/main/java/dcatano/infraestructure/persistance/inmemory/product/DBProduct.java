@@ -18,4 +18,16 @@ public record DBProduct(UUID id, String name, String category, Integer quantity,
             product.getVersion()
         );
     }
+
+    public Product toDomain() {
+        return new Product(
+            this.id,
+            this.name,
+            this.category,
+            this.quantity,
+            this.threshold,
+            this.price,
+            this.version
+        );
+    }
 }

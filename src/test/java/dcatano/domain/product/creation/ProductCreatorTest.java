@@ -9,6 +9,9 @@ import dcatano.domain.product.ProductRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.spy;
 
@@ -29,8 +32,16 @@ public class ProductCreatorTest {
             }
         };
         EventListener<Product> eventListenerSpy = spy(eventListener);
-        ProductRepository productRepository = product -> {
+        ProductRepository productRepository = new ProductRepository() {
+            @Override
+            public void save(Product product) {
 
+            }
+
+            @Override
+            public Optional<Product> findById(UUID id) {
+                return Optional.empty();
+            }
         };
         ProductEvent productEvent = new ProductEvent();
         productEvent.getEventManager().subscribe(EventType.CREATION, eventListenerSpy);

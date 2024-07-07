@@ -25,7 +25,6 @@ public class ProductCreator {
         }
         Product product = productCreatorDTO.toProduct();
         productRepository.save(product);
-        System.out.println("Producto guardado");
         eventPublisher.publish(EventType.CREATION, new Event<>(product));
         return Collections.emptyList();
     }
