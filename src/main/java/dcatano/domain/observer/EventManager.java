@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class EventManager<T> {
     Map<EventType, List<EventListener<T>>> listeners = new HashMap<>();
@@ -23,9 +24,12 @@ public class EventManager<T> {
     }
 
     public void notify(EventType eventType, Event<T> event) {
-        List<EventListener<T>> eventListeners = listeners.get(eventType);
-        for (EventListener<T> eventListener : eventListeners) {
-            eventListener.update(eventType, event);
-        }
+        CompletableFuture.supplyAsync(() -> {
+            List<EventListener<T>> eventListeners = listeners.get(eventType);
+            for (EventListener<T> eventListener : eventListeners) {
+                eventListener.update(eventType, event);
+            }
+            return null;
+        });
     }
 }

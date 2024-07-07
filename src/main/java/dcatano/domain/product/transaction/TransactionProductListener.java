@@ -13,6 +13,5 @@ public class TransactionProductListener implements EventListener<Product> {
     @Override
     public void update(EventType eventType, Event<Product> product) {
         transactionRepository.save(new Transaction(eventType, product));
-        System.out.println("Transacción registrada");
     }
 }
