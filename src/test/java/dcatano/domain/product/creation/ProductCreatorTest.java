@@ -6,9 +6,11 @@ import dcatano.domain.observer.EventType;
 import dcatano.domain.observer.product.ProductEvent;
 import dcatano.domain.product.Product;
 import dcatano.domain.product.ProductRepository;
+import dcatano.domain.product.search.ProductSearchFilters;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,6 +43,11 @@ public class ProductCreatorTest {
             @Override
             public Optional<Product> findById(UUID id) {
                 return Optional.empty();
+            }
+
+            @Override
+            public List<Product> findByFilter(ProductSearchFilters productSearchFilters) {
+                return List.of();
             }
         };
         ProductEvent productEvent = new ProductEvent();
