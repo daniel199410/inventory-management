@@ -1,5 +1,8 @@
 package dcatano.domain.product.creation;
 
+import dcatano.domain.observer.Event;
+import dcatano.domain.observer.EventPublisher;
+import dcatano.domain.observer.EventType;
 import dcatano.domain.product.Product;
 import dcatano.domain.product.ProductRepository;
 import dcatano.domain.product.ValidationError;
@@ -13,6 +16,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ProductCreator {
     private final ProductRepository productRepository;
+    private final EventPublisher<Product> eventPublisher;
 
     public List<String> create(ProductCreatorDTO productCreatorDTO) {
         List<ValidationError> validationErrors = validateProduct(productCreatorDTO);
@@ -21,6 +25,8 @@ public class ProductCreator {
         }
         Product product = productCreatorDTO.toProduct();
         productRepository.save(product);
+        System.out.println("Producto guardado");
+        eventPublisher.publish(EventType.CREATION, new Event<>(product));
         return Collections.emptyList();
     }
 
@@ -32,10 +38,10 @@ public class ProductCreator {
         if(Optional.ofNullable(productCreatorDTO.category()).orElse("").isEmpty()) {
             validationErrors.add(new ValidationError(Messages.INVALID_CATEGORY.getMessage()));
         }
-        if(Optional.ofNullable(productCreatorDTO.quantity()).orElse(-1) >= 0) {
+        if(Optional.ofNullable(productCreatorDTO.quantity()).orElse(-1) < 0) {
             validationErrors.add(new ValidationError(Messages.INVALID_QUANTITY.getMessage()));
         }
-        if(Optional.ofNullable(productCreatorDTO.price()).orElse(0.0) >= 0) {
+        if(Optional.ofNullable(productCreatorDTO.price()).orElse(0.0) < 0) {
             validationErrors.add(new ValidationError(Messages.INVALID_PRICE.getMessage()));
         }
         if(productCreatorDTO.threshold() != null && productCreatorDTO.threshold() < 0) {
