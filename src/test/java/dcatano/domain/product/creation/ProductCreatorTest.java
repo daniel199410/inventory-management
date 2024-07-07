@@ -49,6 +49,11 @@ public class ProductCreatorTest {
             public List<Product> findByFilter(ProductSearchFilters productSearchFilters) {
                 return List.of();
             }
+
+            @Override
+            public void delete(Product payload) {
+
+            }
         };
         ProductEvent productEvent = new ProductEvent();
         productEvent.getEventManager().subscribe(EventType.CREATION, eventListenerSpy);

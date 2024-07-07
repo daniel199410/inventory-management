@@ -31,6 +31,11 @@ public class InMemoryProductRepository implements ProductRepository {
         .map(DBProduct::toDomain).toList();
     }
 
+    @Override
+    public void delete(Product product) {
+        InMemoryPersistence.getProducts().remove(DBProduct.fromDomain(product));
+    }
+
     private static Predicate<DBProduct> isEqualCategory(String category) {
         return product -> {
             if(category != null) {
