@@ -28,6 +28,7 @@ public class Transaction {
         return switch (eventType) {
             case UPDATE -> TransactionType.UPDATE;
             case CREATION -> TransactionType.CREATION;
+            case RESERVATION -> TransactionType.RESERVATION;
             case ELIMINATION -> TransactionType.ELIMINATION;
         };
     }

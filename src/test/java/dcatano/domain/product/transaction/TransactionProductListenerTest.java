@@ -22,10 +22,11 @@ public class TransactionProductListenerTest {
     private final TransactionProductListener transactionProductListener = new TransactionProductListener(transactionRepositorySpy);
 
     @Test
-    void shouldListenAndSaveEventAsATransaction() {
+    void shouldListenAndSaveEventAsATransaction() throws InterruptedException {
         TestEvent eventPublisher = new TestEvent();
         eventPublisher.getEventManager().subscribe(EventType.CREATION, transactionProductListener);
-        eventPublisher.publish(EventType.CREATION, new Event<>(new Product("", "", 1, 1, 1.0)));
+        eventPublisher.publish(EventType.CREATION, new Event<>(new Product("", "", 1, null, 1.0)));
+        Thread.sleep(500);
         verify(transactionRepositorySpy, times(1)).save(Mockito.any(Transaction.class));
     }
 }

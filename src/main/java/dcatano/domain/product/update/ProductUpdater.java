@@ -5,6 +5,7 @@ import dcatano.domain.observer.EventPublisher;
 import dcatano.domain.observer.EventType;
 import dcatano.domain.product.Product;
 import dcatano.domain.product.ProductRepository;
+import dcatano.domain.product.Supply;
 import dcatano.domain.product.ValidationError;
 import lombok.RequiredArgsConstructor;
 
@@ -19,7 +20,7 @@ public class ProductUpdater {
     private final ProductRepository productRepository;
     private final EventPublisher<Product> eventPublisher;
 
-    public CompletableFuture<List<String>> updateQuantityAndPrice(ProductUpdateDTO productUpdateDTO) {
+    public CompletableFuture<List<String>> updateQuantityAndPrice(ProductUpdateDTO productUpdateDTO, EventType eventType) {
         return CompletableFuture.supplyAsync(() -> {
             List<ValidationError> validationErrors = validateUpdateFields(productUpdateDTO);
             if(!validationErrors.isEmpty()) {
@@ -34,12 +35,12 @@ public class ProductUpdater {
                 optionalProduct.get().getName(),
                 optionalProduct.get().getCategory(),
                 Optional.ofNullable(productUpdateDTO.quantity()).orElse(optionalProduct.get().getQuantity()),
-                optionalProduct.get().getThreshold(),
+                Optional.ofNullable(optionalProduct.get().getSupply()).map(supply -> new Supply(supply.threshold(), supply.recharge())).orElse(null),
                 Optional.ofNullable(productUpdateDTO.price()).orElse(optionalProduct.get().getPrice()),
                 optionalProduct.get().getVersion()
             );
             productRepository.save(product);
-            eventPublisher.publish(EventType.UPDATE, new Event<>(product));
+            eventPublisher.publish(eventType, new Event<>(product));
             return Collections.emptyList();
         });
     }

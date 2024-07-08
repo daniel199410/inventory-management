@@ -1,5 +1,6 @@
 package dcatano.domain.product.reservation;
 
+import dcatano.domain.observer.EventType;
 import dcatano.domain.product.ProductMock;
 import dcatano.domain.product.ProductRepository;
 import dcatano.domain.product.update.ProductUpdateDTO;
@@ -78,7 +79,7 @@ public class ReserverTest {
     @Test
     void shouldProcessNewReservation() throws ExecutionException, InterruptedException {
         Mockito.when(productRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(ProductMock.create(testUUID)));
-        Mockito.when(productUpdater.updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class))).thenReturn(CompletableFuture.supplyAsync(Collections::emptyList));
+        Mockito.when(productUpdater.updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class), Mockito.any(EventType.class))).thenReturn(CompletableFuture.supplyAsync(Collections::emptyList));
         reserver.reserveQuantity(new ReserveQuantityDTO(UUID.randomUUID(), 100)).get();
         reservations.stream().findFirst().ifPresent(reservation -> assertEquals(100, reservation.quantity()));
     }
@@ -86,7 +87,7 @@ public class ReserverTest {
     @Test
     void shouldProcessExistentReservation() throws ExecutionException, InterruptedException {
         Mockito.when(productRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(ProductMock.create()));
-        Mockito.when(productUpdater.updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class))).thenReturn(CompletableFuture.supplyAsync(Collections::emptyList));
+        Mockito.when(productUpdater.updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class), Mockito.any(EventType.class))).thenReturn(CompletableFuture.supplyAsync(Collections::emptyList));
         reserver.reserveQuantity(new ReserveQuantityDTO(UUID.randomUUID(), 100)).get();
         reservations.stream().findFirst().ifPresent(reservation -> assertEquals(1100, reservation.quantity()));
     }
@@ -98,16 +99,16 @@ public class ReserverTest {
 
     @Test
     void shouldReleaseReservationAndUpdateProductQuantity() throws ExecutionException, InterruptedException {
-        Mockito.when(productUpdater.updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class))).thenReturn(CompletableFuture.supplyAsync(Collections::emptyList));
+        Mockito.when(productUpdater.updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class), Mockito.any(EventType.class))).thenReturn(CompletableFuture.supplyAsync(Collections::emptyList));
         Mockito.when(productRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(ProductMock.create()));
         assertTrue(reserver.releaseReservation(UUID.randomUUID()).get().isEmpty());
-        verify(productUpdater, times(1)).updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class));
+        verify(productUpdater, times(1)).updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class), Mockito.any(EventType.class));
     }
 
     @Test
     void shouldReleaseReservationAndNotUpdateNotExistentProduct() throws ExecutionException, InterruptedException {
-        Mockito.when(productUpdater.updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class))).thenReturn(CompletableFuture.supplyAsync(Collections::emptyList));
+        Mockito.when(productUpdater.updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class), Mockito.any(EventType.class))).thenReturn(CompletableFuture.supplyAsync(Collections::emptyList));
         assertEquals(Messages.PRODUCT_NOT_FOUND.getMessage(), reserver.releaseReservation(UUID.randomUUID()).get().getFirst());
-        verify(productUpdater, times(0)).updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class));
+        verify(productUpdater, times(0)).updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class), Mockito.any(EventType.class));
     }
 }

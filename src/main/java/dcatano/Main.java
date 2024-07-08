@@ -23,7 +23,7 @@ public class Main {
         productEvent.getEventManager().subscribe(EventType.UPDATE, new TransactionProductListener(transactionRepository));
         ProductCreator productCreator = new ProductCreator(productRepository, productEvent);
         ProductUpdater productUpdater = new ProductUpdater(productRepository, productEvent);
-        productCreator.create(new ProductCreatorDTO("a", "a", 1, 1, 1.0));
-        productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(UUID.randomUUID(), 10, 1.0));
+        productCreator.create(new ProductCreatorDTO("a", "a", 1, null, null, 1.0));
+        productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(UUID.randomUUID(), 10, 1.0), EventType.UPDATE);
     }
 }

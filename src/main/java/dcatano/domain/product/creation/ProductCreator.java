@@ -46,6 +46,12 @@ public class ProductCreator {
         if(productCreatorDTO.threshold() != null && productCreatorDTO.threshold() < 0) {
             validationErrors.add(new ValidationError(Messages.INVALID_THRESHOLD.getMessage()));
         }
+        if(productCreatorDTO.threshold() != null && productCreatorDTO.recharge() == null) {
+            validationErrors.add(new ValidationError(Messages.INVALID_RECHARGE.getMessage()));
+        }
+        if(productCreatorDTO.threshold() != null && productCreatorDTO.recharge() != null && productCreatorDTO.recharge() < productCreatorDTO.threshold()) {
+            validationErrors.add(new ValidationError(Messages.RECHARGE_LOWER_THAN_THRESHOLD.getMessage()));
+        }
         return validationErrors;
     }
 }

@@ -1,5 +1,6 @@
 package dcatano.domain.product.reservation;
 
+import dcatano.domain.observer.EventType;
 import dcatano.domain.product.Product;
 import dcatano.domain.product.ProductRepository;
 import dcatano.domain.product.ValidationError;
@@ -90,7 +91,7 @@ public class Reserver {
                 List<String> result = productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(
                     product.getId(),
                     quantity,
-                    product.getPrice())
+                    product.getPrice()), EventType.RESERVATION
                 ).get();
                 return result.isEmpty();
             } catch (InterruptedException | ExecutionException e) {

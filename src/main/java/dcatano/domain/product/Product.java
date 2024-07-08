@@ -12,16 +12,16 @@ public class Product {
     private final String name;
     private final String category;
     private final Integer quantity;
-    private final Integer threshold;
+    private final Supply supply;
     private final Double price;
     private final UUID version;
 
-    public Product(String name, String category, Integer quantity, Integer threshold, Double price) {
+    public Product(String name, String category, Integer quantity, Supply supply, Double price) {
+        this.supply = supply;
         this.id = UUID.randomUUID();
         this.name = name;
         this.category = category;
         this.quantity = quantity;
-        this.threshold = threshold;
         this.price = price;
         this.version = UUID.randomUUID();
     }

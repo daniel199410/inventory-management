@@ -1,10 +1,11 @@
 package dcatano.infraestructure.persistance.inmemory.product;
 
 import dcatano.domain.product.Product;
+import dcatano.domain.product.Supply;
 
 import java.util.UUID;
 
-public record DBProduct(UUID id, String name, String category, Integer quantity, Integer threshold, Double price,
+public record DBProduct(UUID id, String name, String category, Integer quantity, Integer recharge, Integer threshold, Double price,
                         UUID version) {
 
     public static DBProduct fromDomain(Product product) {
@@ -13,7 +14,8 @@ public record DBProduct(UUID id, String name, String category, Integer quantity,
             product.getName(),
             product.getCategory(),
             product.getQuantity(),
-            product.getThreshold(),
+            product.getSupply().recharge(),
+            product.getSupply().threshold(),
             product.getPrice(),
             product.getVersion()
         );
@@ -25,7 +27,7 @@ public record DBProduct(UUID id, String name, String category, Integer quantity,
             this.name,
             this.category,
             this.quantity,
-            this.threshold,
+            new Supply(threshold, recharge),
             this.price,
             this.version
         );

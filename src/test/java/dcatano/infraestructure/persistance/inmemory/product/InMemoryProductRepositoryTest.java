@@ -26,6 +26,7 @@ public class InMemoryProductRepositoryTest {
                 i % 2 == 0 ? "Categoría 1" : "Categoría 2",
                 i,
                 null,
+                null,
                 (double) i,
                 UUID.randomUUID()
             ));
