@@ -17,9 +17,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class ReserverTest {
+    private static final UUID testUUID = UUID.fromString("ccbcace8-69f1-4345-bca6-afdd3682d050");
     private static Set<Reservation> reservations = new HashSet<>();
     private final ProductRepository productRepository = mock(ProductRepository.class);
     private final ProductUpdater productUpdater = mock(ProductUpdater.class);
@@ -31,10 +35,15 @@ public class ReserverTest {
 
         @Override
         public Optional<Reservation> findByProductId(UUID id) {
-            if(UUID.fromString("ccbcace8-69f1-4345-bca6-afdd3682d050").equals(id)) {
+            if(testUUID.equals(id)) {
                 return Optional.empty();
             }
             return Optional.of(new Reservation(id, 1000));
+        }
+
+        @Override
+        public void delete(Reservation reservation) {
+
         }
     };
     private final Reserver reserver = new Reserver(productRepository, productUpdater, reserverRepository);
@@ -68,7 +77,7 @@ public class ReserverTest {
 
     @Test
     void shouldProcessNewReservation() throws ExecutionException, InterruptedException {
-        Mockito.when(productRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(ProductMock.create(UUID.fromString("ccbcace8-69f1-4345-bca6-afdd3682d050"))));
+        Mockito.when(productRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(ProductMock.create(testUUID)));
         Mockito.when(productUpdater.updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class))).thenReturn(CompletableFuture.supplyAsync(Collections::emptyList));
         reserver.reserveQuantity(new ReserveQuantityDTO(UUID.randomUUID(), 100)).get();
         reservations.stream().findFirst().ifPresent(reservation -> assertEquals(100, reservation.quantity()));
@@ -80,5 +89,25 @@ public class ReserverTest {
         Mockito.when(productUpdater.updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class))).thenReturn(CompletableFuture.supplyAsync(Collections::emptyList));
         reserver.reserveQuantity(new ReserveQuantityDTO(UUID.randomUUID(), 100)).get();
         reservations.stream().findFirst().ifPresent(reservation -> assertEquals(1100, reservation.quantity()));
+    }
+
+    @Test
+    void shouldNotReleaseReservationIfReservationIsNotFound() throws ExecutionException, InterruptedException {
+        assertEquals(Messages.RESERVATION_NOT_FOUND.getMessage(), reserver.releaseReservation(testUUID).get().getFirst());
+    }
+
+    @Test
+    void shouldReleaseReservationAndUpdateProductQuantity() throws ExecutionException, InterruptedException {
+        Mockito.when(productUpdater.updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class))).thenReturn(CompletableFuture.supplyAsync(Collections::emptyList));
+        Mockito.when(productRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(ProductMock.create()));
+        assertTrue(reserver.releaseReservation(UUID.randomUUID()).get().isEmpty());
+        verify(productUpdater, times(1)).updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class));
+    }
+
+    @Test
+    void shouldReleaseReservationAndNotUpdateNotExistentProduct() throws ExecutionException, InterruptedException {
+        Mockito.when(productUpdater.updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class))).thenReturn(CompletableFuture.supplyAsync(Collections::emptyList));
+        assertEquals(Messages.PRODUCT_NOT_FOUND.getMessage(), reserver.releaseReservation(UUID.randomUUID()).get().getFirst());
+        verify(productUpdater, times(0)).updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class));
     }
 }

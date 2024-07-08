@@ -9,4 +9,11 @@ public record DBReservation(UUID productId, Integer quantity) {
     public static DBReservation fromDomain(Reservation reservation) {
         return new DBReservation(reservation.productId(), reservation.quantity());
     }
+
+    public Reservation toDomain() {
+        return new Reservation(
+            productId,
+            quantity
+        );
+    }
 }

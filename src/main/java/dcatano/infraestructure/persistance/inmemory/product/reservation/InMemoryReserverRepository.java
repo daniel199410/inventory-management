@@ -16,6 +16,15 @@ public class InMemoryReserverRepository implements ReserverRepository {
 
     @Override
     public Optional<Reservation> findByProductId(UUID id) {
-        return Optional.empty();
+        return InMemoryPersistence.getReservations()
+            .stream()
+            .filter(dbReservation -> dbReservation.productId().equals(id))
+            .findFirst()
+            .map(DBReservation::toDomain);
+    }
+
+    @Override
+    public void delete(Reservation reservation) {
+        InMemoryPersistence.getReservations().remove(DBReservation.fromDomain(reservation));
     }
 }

@@ -7,4 +7,6 @@ public interface ReserverRepository {
     void save(Reservation reservation);
 
     Optional<Reservation> findByProductId(UUID id);
+
+    void delete(Reservation reservation);
 }

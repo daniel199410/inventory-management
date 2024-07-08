@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -43,6 +44,22 @@ public class Reserver {
         });
     }
 
+    public CompletableFuture<List<String>> releaseReservation(UUID productId) {
+        return CompletableFuture.supplyAsync(() -> {
+            Optional<Reservation> optionalReservation = reserverRepository.findByProductId(productId);
+            if(optionalReservation.isEmpty()) {
+                return Collections.singletonList(Messages.RESERVATION_NOT_FOUND.getMessage());
+            }
+            reserverRepository.delete(optionalReservation.get());
+            Optional<Product> optionalProduct = productRepository.findById(productId);
+            if(optionalProduct.isPresent()) {
+                updateProduct(optionalProduct.get(), optionalProduct.get().getQuantity() + optionalReservation.get().quantity());
+                return Collections.emptyList();
+            }
+            return Collections.singletonList(Messages.PRODUCT_NOT_FOUND.getMessage());
+        });
+    }
+
     private List<ValidationError> validateUpdateFields(@NonNull ReserveQuantityDTO reserveQuantityDTO) {
         List<ValidationError> validationErrors = new LinkedList<>();
         if(reserveQuantityDTO.quantity() == null) {
@@ -56,7 +73,7 @@ public class Reserver {
     }
 
     private void processReservation(@NonNull Product product, Integer quantity) throws ExecutionException, InterruptedException {
-        boolean updated = updateProduct(product, quantity).get();
+        boolean updated = updateProduct(product, product.getQuantity() - quantity).get();
         if(updated) {
             Optional<Reservation> optionalReservation = reserverRepository.findByProductId(product.getId());
             int newQuantity = quantity;
@@ -70,12 +87,12 @@ public class Reserver {
     private CompletableFuture<Boolean> updateProduct(Product product, Integer quantity) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(
+                List<String> result = productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(
                     product.getId(),
                     quantity,
                     product.getPrice())
                 ).get();
-                return true;
+                return result.isEmpty();
             } catch (InterruptedException | ExecutionException e) {
                 return false;
             }

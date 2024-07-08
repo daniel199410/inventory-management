@@ -27,10 +27,11 @@ public class ProductQuantityListenerTest {
     private final ProductQuantityListener productQuantityListener = new ProductQuantityListener(productRepository, eventListenerSpy);
 
     @Test
-    void shouldDeleteAndEmitEventOnEventReceivedWithProductQuantity0() {
+    void shouldDeleteAndEmitEventOnEventReceivedWithProductQuantity0() throws InterruptedException {
         TestEvent testEvent = new TestEvent();
         testEvent.getEventManager().subscribe(EventType.UPDATE, productQuantityListener);
         testEvent.publish(EventType.UPDATE, new Event<>(new Product("", "", 0, 1, 1.0)));
+        Thread.sleep(1000);
         verify(eventListenerSpy, times(1)).publish(Mockito.any(), Mockito.any());
     }
 
