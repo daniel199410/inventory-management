@@ -20,8 +20,9 @@ public class InMemoryProductRepositoryTest {
     @BeforeAll
     public static void beforeAll() {
         for (int i = 0; i < 100; i++) {
-            InMemoryPersistence.getProducts().add(new DBProduct(
-                UUID.randomUUID(),
+            UUID uuid = UUID.randomUUID();
+            InMemoryPersistence.getProducts().put(uuid, new DBProduct(
+                uuid,
                 "name",
                 i % 2 == 0 ? "Categoría 1" : "Categoría 2",
                 i,
@@ -34,7 +35,7 @@ public class InMemoryProductRepositoryTest {
     }
 
     @Test
-    void shouldSaveProduct() {
+    void shouldSaveProduct() throws OptimisticLockException {
         productRepository.save(ProductMock.create());
         assertFalse(InMemoryPersistence.getProducts().isEmpty());
     }

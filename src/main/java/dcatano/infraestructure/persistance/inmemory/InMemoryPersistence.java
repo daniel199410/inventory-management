@@ -5,11 +5,14 @@ import dcatano.infraestructure.persistance.inmemory.product.transaction.DBTransa
 import lombok.Getter;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryPersistence {
     @Getter
-    static final Set<DBProduct> products = new HashSet<>();
+    static Map<UUID, DBProduct> products = new ConcurrentHashMap<>();
     @Getter
     static final Set<DBTransaction> transactions = new HashSet<>();
     @Getter

@@ -6,6 +6,7 @@ import dcatano.domain.observer.EventType;
 import dcatano.domain.product.Product;
 import dcatano.domain.product.ProductRepository;
 import dcatano.domain.product.ValidationError;
+import dcatano.infraestructure.persistance.inmemory.product.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collections;
@@ -24,9 +25,16 @@ public class ProductCreator {
             return validationErrors.stream().map(ValidationError::reason).toList();
         }
         Product product = productCreatorDTO.toProduct();
-        productRepository.save(product);
-        eventPublisher.publish(EventType.CREATION, new Event<>(product));
-        return Collections.emptyList();
+        while (true) {
+            try {
+                productRepository.save(product);
+                eventPublisher.publish(EventType.CREATION, new Event<>(product));
+                return Collections.emptyList();
+            } catch (OptimisticLockException ignored) {
+
+            }
+        }
+
     }
 
     private List<ValidationError> validateProduct(ProductCreatorDTO productCreatorDTO) {

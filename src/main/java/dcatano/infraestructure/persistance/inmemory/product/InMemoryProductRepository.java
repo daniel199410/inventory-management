@@ -13,19 +13,24 @@ import java.util.function.Predicate;
 
 public class InMemoryProductRepository implements ProductRepository {
     @Override
-    public void save(Product product) {
+    public synchronized void save(Product product) throws OptimisticLockException {
         DBProduct dbProduct = DBProduct.fromDomain(product);
-        InMemoryPersistence.getProducts().add(dbProduct);
+        Optional<Product> optionalProduct = findById(product.getId());
+        if(optionalProduct.isPresent() && !optionalProduct.get().getVersion().equals(product.getVersion())) {
+            throw new OptimisticLockException();
+        }
+        dbProduct.setVersion(UUID.randomUUID());
+        InMemoryPersistence.getProducts().put(dbProduct.getId(), dbProduct);
     }
 
     @Override
     public Optional<Product> findById(UUID id) {
-        return InMemoryPersistence.getProducts().stream().filter(p -> p.id().equals(id)).findFirst().map(DBProduct::toDomain);
+        return Optional.ofNullable(InMemoryPersistence.getProducts().get(id)).map(DBProduct::toDomain);
     }
 
     @Override
     public List<Product> findByFilter(ProductSearchFilters productSearchFilters) {
-        return InMemoryPersistence.getProducts().parallelStream()
+        return InMemoryPersistence.getProducts().values().stream()
             .filter(isEqualCategory(productSearchFilters.category()))
             .filter(isBetweenPriceRange(productSearchFilters.priceRangeFilter()))
         .map(DBProduct::toDomain).toList();
@@ -33,13 +38,13 @@ public class InMemoryProductRepository implements ProductRepository {
 
     @Override
     public void delete(Product product) {
-        InMemoryPersistence.getProducts().remove(DBProduct.fromDomain(product));
+        InMemoryPersistence.getProducts().remove(product.getId());
     }
 
     private static Predicate<DBProduct> isEqualCategory(String category) {
         return product -> {
             if(category != null) {
-                return category.equals(product.category());
+                return category.equals(product.getCategory());
             }
             return true;
         };
@@ -59,10 +64,10 @@ public class InMemoryProductRepository implements ProductRepository {
     }
 
     private static Predicate<DBProduct> isPriceLowerThanOrEqual(Double upperBound) {
-        return product -> product.price() <= upperBound;
+        return product -> product.getPrice() <= upperBound;
     }
 
     private static Predicate<DBProduct> isPriceGreaterThanOrEqual(Double lowerBound) {
-        return product -> product.price() >= lowerBound;
+        return product -> product.getPrice() >= lowerBound;
     }
 }

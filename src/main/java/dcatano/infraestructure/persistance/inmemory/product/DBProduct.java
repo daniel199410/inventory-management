@@ -2,11 +2,27 @@ package dcatano.infraestructure.persistance.inmemory.product;
 
 import dcatano.domain.product.Product;
 import dcatano.domain.product.Supply;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
+import java.util.Objects;
 import java.util.UUID;
 
-public record DBProduct(UUID id, String name, String category, Integer quantity, Integer recharge, Integer threshold, Double price,
-                        UUID version) {
+@Getter
+@ToString
+@AllArgsConstructor
+public class DBProduct {
+    private UUID id;
+    private String name;
+    private String category;
+    private Integer quantity;
+    private Integer recharge;
+    private Integer threshold;
+    private Double price;
+    @Setter
+    private UUID version;
 
     public static DBProduct fromDomain(Product product) {
         return new DBProduct(
@@ -31,5 +47,17 @@ public record DBProduct(UUID id, String name, String category, Integer quantity,
             this.price,
             this.version
         );
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DBProduct dbProduct)) return false;
+        return Objects.equals(id, dbProduct.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

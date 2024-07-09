@@ -54,7 +54,7 @@ public class Reserver {
             reserverRepository.delete(optionalReservation.get());
             Optional<Product> optionalProduct = productRepository.findById(productId);
             if(optionalProduct.isPresent()) {
-                updateProduct(optionalProduct.get(), optionalProduct.get().getQuantity() + optionalReservation.get().quantity());
+                updateProduct(optionalProduct.get(), optionalReservation.get().quantity());
                 return Collections.emptyList();
             }
             return Collections.singletonList(Messages.PRODUCT_NOT_FOUND.getMessage());
@@ -74,7 +74,7 @@ public class Reserver {
     }
 
     private void processReservation(@NonNull Product product, Integer quantity) throws ExecutionException, InterruptedException {
-        boolean updated = updateProduct(product, product.getQuantity() - quantity).get();
+        boolean updated = updateProduct(product, -quantity).get();
         if(updated) {
             Optional<Reservation> optionalReservation = reserverRepository.findByProductId(product.getId());
             int newQuantity = quantity;

@@ -7,6 +7,7 @@ import dcatano.domain.product.Product;
 import dcatano.domain.product.ProductRepository;
 import dcatano.domain.product.Supply;
 import dcatano.domain.product.ValidationError;
+import dcatano.infraestructure.persistance.inmemory.product.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collections;
@@ -22,26 +23,31 @@ public class ProductUpdater {
 
     public CompletableFuture<List<String>> updateQuantityAndPrice(ProductUpdateDTO productUpdateDTO, EventType eventType) {
         return CompletableFuture.supplyAsync(() -> {
-            List<ValidationError> validationErrors = validateUpdateFields(productUpdateDTO);
-            if(!validationErrors.isEmpty()) {
-                return validationErrors.stream().map(ValidationError::reason).toList();
+            while (true) {
+                List<ValidationError> validationErrors = validateUpdateFields(productUpdateDTO);
+                if(!validationErrors.isEmpty()) {
+                    return validationErrors.stream().map(ValidationError::reason).toList();
+                }
+                Optional<Product> optionalProduct = productRepository.findById(productUpdateDTO.id());
+                if(optionalProduct.isEmpty()) {
+                    return List.of(Messages.PRODUCT_NOT_FOUND.getMessage());
+                }
+                Product product = new Product(
+                    optionalProduct.get().getId(),
+                    optionalProduct.get().getName(),
+                    optionalProduct.get().getCategory(),
+                    productUpdateDTO.quantity() + optionalProduct.get().getQuantity(),
+                    Optional.ofNullable(optionalProduct.get().getSupply()).map(supply -> new Supply(supply.threshold(), supply.recharge())).orElse(null),
+                    Optional.ofNullable(productUpdateDTO.price()).orElse(optionalProduct.get().getPrice()),
+                    optionalProduct.get().getVersion()
+                );
+                try {
+                    productRepository.save(product);
+                    eventPublisher.publish(eventType, new Event<>(product));
+                    return Collections.emptyList();
+                } catch (OptimisticLockException ignored) {
+                }
             }
-            Optional<Product> optionalProduct = productRepository.findById(productUpdateDTO.id());
-            if(optionalProduct.isEmpty()) {
-                return List.of(Messages.PRODUCT_NOT_FOUND.getMessage());
-            }
-            Product product = new Product(
-                optionalProduct.get().getId(),
-                optionalProduct.get().getName(),
-                optionalProduct.get().getCategory(),
-                Optional.ofNullable(productUpdateDTO.quantity()).orElse(optionalProduct.get().getQuantity()),
-                Optional.ofNullable(optionalProduct.get().getSupply()).map(supply -> new Supply(supply.threshold(), supply.recharge())).orElse(null),
-                Optional.ofNullable(productUpdateDTO.price()).orElse(optionalProduct.get().getPrice()),
-                optionalProduct.get().getVersion()
-            );
-            productRepository.save(product);
-            eventPublisher.publish(eventType, new Event<>(product));
-            return Collections.emptyList();
         });
     }
 

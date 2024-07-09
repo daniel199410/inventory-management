@@ -1,16 +1,22 @@
 package dcatano.domain.product.reservation;
 
 import dcatano.domain.observer.EventType;
+import dcatano.domain.observer.product.ProductEvent;
+import dcatano.domain.product.Product;
 import dcatano.domain.product.ProductMock;
 import dcatano.domain.product.ProductRepository;
 import dcatano.domain.product.update.ProductUpdateDTO;
 import dcatano.domain.product.update.ProductUpdater;
+import dcatano.infraestructure.persistance.inmemory.product.InMemoryProductRepository;
+import dcatano.infraestructure.persistance.inmemory.product.OptimisticLockException;
+import dcatano.infraestructure.persistance.inmemory.product.reservation.InMemoryReserverRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -110,5 +116,24 @@ public class ReserverTest {
         Mockito.when(productUpdater.updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class), Mockito.any(EventType.class))).thenReturn(CompletableFuture.supplyAsync(Collections::emptyList));
         assertEquals(Messages.PRODUCT_NOT_FOUND.getMessage(), reserver.releaseReservation(UUID.randomUUID()).get().getFirst());
         verify(productUpdater, times(0)).updateQuantityAndPrice(Mockito.any(ProductUpdateDTO.class), Mockito.any(EventType.class));
+    }
+
+    @Test
+    void shouldRetryUpdateOnProductVersionChange() throws OptimisticLockException {
+        UUID uuid = UUID.fromString("ccbcace8-69f1-4345-bca6-afdd3682d050");
+        ProductRepository testProductRepository = new InMemoryProductRepository();
+        Product product = ProductMock.create(uuid);
+        testProductRepository.save(product);
+        Reserver testReserver = new Reserver(testProductRepository, new ProductUpdater(testProductRepository, new ProductEvent()), new InMemoryReserverRepository());
+        List.of(
+            testReserver.reserveQuantity(new ReserveQuantityDTO(uuid, 10)),
+            testReserver.reserveQuantity(new ReserveQuantityDTO(uuid, 20)),
+            testReserver.reserveQuantity(new ReserveQuantityDTO(uuid, 10)),
+            testReserver.reserveQuantity(new ReserveQuantityDTO(uuid, 20))
+        ).forEach(CompletableFuture::join);
+        testProductRepository.findById(uuid).ifPresent(p -> {
+            assertEquals(product.getQuantity() - (10 + 20) * 2, p.getQuantity());
+            testProductRepository.delete(product);
+        });
     }
 }
