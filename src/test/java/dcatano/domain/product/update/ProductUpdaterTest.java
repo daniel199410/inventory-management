@@ -26,19 +26,19 @@ public class ProductUpdaterTest {
 
     @Test
     void shouldNotUpdateProductIfBothQuantityAndPriceAreNull() throws ExecutionException, InterruptedException {
-        assertEquals(Messages.INVALID_PRICE_AND_QUANTITY.getMessage(), productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(UUID.randomUUID(), null, null), EventType.UPDATE).get().getFirst());
+        assertEquals(Messages.INVALID_PRICE_AND_QUANTITY.getMessage(), productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(UUID.randomUUID(), null, null, true), EventType.UPDATE).get().getFirst());
     }
 
     @Test
     void shouldNotUpdateOnProductNotFound() throws ExecutionException, InterruptedException {
         Mockito.when(productRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.empty());
-        assertEquals(Messages.PRODUCT_NOT_FOUND.getMessage(), productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(UUID.randomUUID(), 100, null), EventType.UPDATE).get().getFirst());
+        assertEquals(Messages.PRODUCT_NOT_FOUND.getMessage(), productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(UUID.randomUUID(), 100, null, true), EventType.UPDATE).get().getFirst());
     }
 
     @Test
     void shouldUpdateProductAndEmitEvent() throws ExecutionException, InterruptedException {
         Mockito.when(productRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(ProductMock.create()));
-        productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(UUID.randomUUID(), 100, null), EventType.UPDATE).get();
+        productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(UUID.randomUUID(), 100, null, true), EventType.UPDATE).get();
         verify(eventPublisher, times(1)).publish(eq(EventType.UPDATE), Mockito.any(Event.class));
     }
 }

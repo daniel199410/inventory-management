@@ -36,7 +36,7 @@ public class ProductUpdater implements IProductUpdater{
                     optionalProduct.get().getId(),
                     optionalProduct.get().getName(),
                     optionalProduct.get().getCategory(),
-                    Optional.ofNullable(productUpdateDTO.quantity()).orElse(0) + optionalProduct.get().getQuantity(),
+                    updateQuantity(optionalProduct.get(), productUpdateDTO),
                     Optional.ofNullable(optionalProduct.get().getSupply()).map(supply -> new Supply(supply.threshold(), supply.recharge())).orElse(null),
                     Optional.ofNullable(productUpdateDTO.price()).orElse(optionalProduct.get().getPrice()),
                     optionalProduct.get().getVersion()
@@ -49,6 +49,13 @@ public class ProductUpdater implements IProductUpdater{
                 }
             }
         });
+    }
+
+    private Integer updateQuantity(Product product, ProductUpdateDTO productUpdateDTO) {
+        if(productUpdateDTO.replace()) {
+            return Optional.ofNullable(productUpdateDTO.quantity()).orElse(product.getQuantity());
+        }
+        return product.getQuantity() + Optional.ofNullable(productUpdateDTO.quantity()).orElse(0);
     }
 
     private List<ValidationError> validateUpdateFields(ProductUpdateDTO productUpdateDTO) {

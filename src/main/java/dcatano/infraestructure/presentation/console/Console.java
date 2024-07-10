@@ -124,7 +124,7 @@ public class Console implements Presentation {
             int quantity = scanner.nextInt();
             System.out.print(Messages.ENTER_PRICE.getMessage());
             double price = scanner.nextDouble();
-            List<String> failedValidations = productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(productId, quantity, price), EventType.UPDATE).get();
+            List<String> failedValidations = productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(productId, quantity, price, true), EventType.UPDATE).get();
             if(failedValidations.isEmpty()) {
                 System.out.println(Messages.PRODUCT_CREATED.getMessage());
                 return;

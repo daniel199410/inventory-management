@@ -18,7 +18,8 @@ public class Supplier implements EventListener<Product> {
             productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(
                 product.getPayload().getId(),
                 product.getPayload().getSupply().recharge(),
-                product.getPayload().getPrice()
+                product.getPayload().getPrice(),
+                false
             ), EventType.UPDATE);
         }
     }
