@@ -26,6 +26,7 @@ public enum Messages {
         -      Bienvenido al sistema de inventario     -
         ------------------------------------------------
         """),
+    LIBERATION_FAILURE("No se ha podido liberar la reserva. Razón: "),
     OPTIONS_INTRODUCTION("Digita una opción para continuar y luego haz enter..."),
     PRODUCT_CREATED("Producto creado exitosamente"),
     PRODUCT_DESCRIPTION("id: %s, Nombre: %s, Categoría: %s, Cantidad: %d, Precio: %s%n"),
@@ -40,6 +41,7 @@ public enum Messages {
     PRODUCT_SEARCH_ERROR("Ha ocurrido un error consultando los productos. Intenta más tarde."),
     REGISTRIES_NOT_FOUND("No se han encontrado registros"),
     RESERVATION_FAILURE("No se ha podido ejecutar la reserva. Razón:"),
+    RESERVATION_GENERAL_ERROR("Ha ocurrido un error haciendo la reserva de inventario. Intenta más tarde."),
     RESERVATION_OPTIONS("Digita 1 o 2."),
     SEARCH_TYPES_DESCRIPTION("¿desea hacer una búsqueda filtrada (Y)? "),
     SELECT_CORRECT_OPTION("Selecciona una opción correcta"),

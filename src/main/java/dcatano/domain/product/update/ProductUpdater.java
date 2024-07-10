@@ -36,7 +36,7 @@ public class ProductUpdater implements IProductUpdater{
                     optionalProduct.get().getId(),
                     optionalProduct.get().getName(),
                     optionalProduct.get().getCategory(),
-                    Optional.ofNullable(productUpdateDTO.quantity()).orElse(optionalProduct.get().getQuantity()),
+                    Optional.ofNullable(productUpdateDTO.quantity()).orElse(0) + optionalProduct.get().getQuantity(),
                     Optional.ofNullable(optionalProduct.get().getSupply()).map(supply -> new Supply(supply.threshold(), supply.recharge())).orElse(null),
                     Optional.ofNullable(productUpdateDTO.price()).orElse(optionalProduct.get().getPrice()),
                     optionalProduct.get().getVersion()

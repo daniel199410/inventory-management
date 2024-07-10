@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.text.NumberFormat;
 import java.util.InputMismatchException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -43,38 +44,34 @@ public class Console implements Presentation {
 
     private void presentProductReservation() {
         Scanner scanner = new Scanner(System.in);
+        List<String> failedValidations = new LinkedList<>();
         try {
             System.out.println(Messages.ENTER_PRODUCT_ID.getMessage());
             UUID productId = UUID.fromString(scanner.nextLine());
             System.out.print(Messages.PRODUCT_RESERVATION_HERO.getMessage());
             int response = scanner.nextInt();
+            if(response != 1 && response != 2) {
+                System.err.println(Messages.RESERVATION_OPTIONS);
+                presentProductReservation();
+            }
             if(response == 1) {
                 System.out.println(Messages.ENTER_QUANTITY.getMessage());
                 int quantity = scanner.nextInt();
                 ReserveQuantityDTO reserveQuantityDTO = new ReserveQuantityDTO(productId, quantity);
-                List<String> failedValidations = reserver.reserveQuantity(reserveQuantityDTO).get();
-                if(failedValidations.isEmpty()) {
-                    System.out.println(Messages.SUCCESSFUL_LIBERATION.getMessage());
-                } else {
-                    shouldFailureReasons(Messages.RESERVATION_FAILURE.getMessage(), failedValidations);
-                }
-                return;
+                failedValidations = reserver.reserveQuantity(reserveQuantityDTO).get();
             }
             if(response == 2) {
-                List<String> failedValidations = reserver.releaseReservation(productId).get();
-                if(failedValidations.isEmpty()) {
-                    System.out.println(Messages.SUCCESSFUL_LIBERATION.getMessage());
-                } else {
-                    shouldFailureReasons(Messages.RESERVATION_FAILURE.getMessage(), failedValidations);
-                }
-                return;
+                failedValidations = reserver.releaseReservation(productId).get();
             }
-            System.err.println(Messages.RESERVATION_OPTIONS);
-            presentProductReservation();
+            if(failedValidations.isEmpty()) {
+                System.out.println(Messages.SUCCESSFUL_LIBERATION.getMessage());
+            } else {
+                showFailureReasons(Messages.LIBERATION_FAILURE.getMessage(), failedValidations);
+            }
         } catch (InputMismatchException | IllegalArgumentException e) {
             System.err.println(Messages.ENTER_CORRECT_DATA.getMessage());
         } catch (ExecutionException | InterruptedException e) {
-            System.err.println("No se ha podido modificar la reserva del producto.");
+            System.err.println(Messages.RESERVATION_GENERAL_ERROR.getMessage());
         }
     }
 
@@ -132,7 +129,7 @@ public class Console implements Presentation {
                 System.out.println(Messages.PRODUCT_CREATED.getMessage());
                 return;
             }
-            shouldFailureReasons(Messages.PRODUCT_NOT_UPDATED.getMessage(), failedValidations);
+            showFailureReasons(Messages.PRODUCT_NOT_UPDATED.getMessage(), failedValidations);
         } catch (ExecutionException | InterruptedException e) {
             System.err.println("No se ha podido actualizar el producto.");
         } catch (InputMismatchException | IllegalArgumentException e) {
@@ -167,7 +164,7 @@ public class Console implements Presentation {
                 System.out.println(Messages.PRODUCT_CREATED.getMessage());
                 return;
             }
-            shouldFailureReasons(Messages.PRODUCT_NOT_CREATED.getMessage(), failedValidations);
+            showFailureReasons(Messages.PRODUCT_NOT_CREATED.getMessage(), failedValidations);
         } catch (InputMismatchException | NumberFormatException e) {
             System.err.println(Messages.ENTER_CORRECT_DATA.getMessage());
         }
@@ -205,7 +202,7 @@ public class Console implements Presentation {
         }
     }
 
-    private void shouldFailureReasons(String message, List<String> failedValidations) {
+    private void showFailureReasons(String message, List<String> failedValidations) {
         System.err.println(message);
         failedValidations.forEach(v -> System.err.printf("-- %s%n", v));
     }

@@ -93,7 +93,7 @@ public class Reserver implements IReserver {
             try {
                 List<String> result = productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(
                     product.getId(),
-                    product.getQuantity() + quantity,
+                    quantity,
                     product.getPrice()), EventType.RESERVATION
                 ).get();
                 return result.isEmpty();
