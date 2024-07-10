@@ -9,6 +9,7 @@ public enum Options {
     ADD_PRODUCT("Crear producto"),
     UPDATE_PRODUCT("Actualizar producto"),
     LIST_PRODUCTS("Listar todos los productos"),
+    RESERVATION("Hacer/Liberar reserva"),
     EXIT("Salir"),
     ;
 

@@ -53,7 +53,7 @@ public class ReserverTest {
 
         }
     };
-    private final Reserver reserver = new Reserver(productRepository, productUpdater, reserverRepository);
+    private final IReserver reserver = new Reserver(productRepository, productUpdater, reserverRepository);
 
     @BeforeEach
     public void beforeEach() {
@@ -124,7 +124,7 @@ public class ReserverTest {
         ProductRepository testProductRepository = new InMemoryProductRepository();
         Product product = ProductMock.create(uuid);
         testProductRepository.save(product);
-        Reserver testReserver = new Reserver(testProductRepository, new ProductUpdater(testProductRepository, new ProductEvent()), new InMemoryReserverRepository());
+        IReserver testReserver = new Reserver(testProductRepository, new ProductUpdater(testProductRepository, new ProductEvent()), new InMemoryReserverRepository());
         List.of(
             testReserver.reserveQuantity(new ReserveQuantityDTO(uuid, 10)),
             testReserver.reserveQuantity(new ReserveQuantityDTO(uuid, 20)),

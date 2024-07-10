@@ -6,6 +6,9 @@ import dcatano.domain.product.ProductRepository;
 import dcatano.domain.product.creation.IProductCreator;
 import dcatano.domain.product.creation.ProductCreator;
 import dcatano.domain.product.elimination.ProductQuantityListener;
+import dcatano.domain.product.reservation.IReserver;
+import dcatano.domain.product.reservation.Reserver;
+import dcatano.domain.product.reservation.ReserverRepository;
 import dcatano.domain.product.search.IProductSearchEngine;
 import dcatano.domain.product.search.ProductSearchEngine;
 import dcatano.domain.product.supplying.Supplier;
@@ -14,6 +17,7 @@ import dcatano.domain.product.transaction.TransactionRepository;
 import dcatano.domain.product.update.IProductUpdater;
 import dcatano.domain.product.update.ProductUpdater;
 import dcatano.infraestructure.persistance.inmemory.product.InMemoryProductRepository;
+import dcatano.infraestructure.persistance.inmemory.product.reservation.InMemoryReserverRepository;
 import dcatano.infraestructure.persistance.inmemory.product.transaction.InMemoryTransactionRepository;
 import dcatano.infraestructure.presentation.Presentation;
 import dcatano.infraestructure.presentation.Presenter;
@@ -24,11 +28,13 @@ public class Main {
 
     public static void main(String[] args) {
         ProductEvent productEvent = setUpProductEvent();
+        ReserverRepository reserverRepository = new InMemoryReserverRepository();
         IProductCreator productCreator = new ProductCreator(productRepository, productEvent);
         IProductUpdater productUpdater = new ProductUpdater(productRepository, productEvent);
+        IReserver reserver = new Reserver(productRepository, productUpdater, reserverRepository);
         productEvent.getEventManager().subscribe(EventType.UPDATE, new Supplier(productUpdater));
         IProductSearchEngine productSearchEngine = new ProductSearchEngine(productRepository);
-        Presentation presentation = new Console(productCreator, productUpdater, productSearchEngine);
+        Presentation presentation = new Console(productCreator, productUpdater, productSearchEngine, reserver);
         Presenter presenter = new Presenter(presentation);
         presenter.present();
     }

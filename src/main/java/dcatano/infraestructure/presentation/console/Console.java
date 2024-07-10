@@ -3,6 +3,8 @@ package dcatano.infraestructure.presentation.console;
 import dcatano.domain.observer.EventType;
 import dcatano.domain.product.creation.IProductCreator;
 import dcatano.domain.product.creation.ProductCreatorDTO;
+import dcatano.domain.product.reservation.IReserver;
+import dcatano.domain.product.reservation.ReserveQuantityDTO;
 import dcatano.domain.product.search.IProductSearchEngine;
 import dcatano.domain.product.search.PriceRangeFilter;
 import dcatano.domain.product.search.ProductPriceRangeException;
@@ -27,6 +29,7 @@ public class Console implements Presentation {
     private final IProductCreator productCreator;
     private final IProductUpdater productUpdater;
     private final IProductSearchEngine productSearchEngine;
+    private final IReserver reserver;
 
     @Override
     public void executeAction(Options option) {
@@ -34,22 +37,60 @@ public class Console implements Presentation {
             case ADD_PRODUCT -> presentProductCreation();
             case UPDATE_PRODUCT -> presentProductUpdate();
             case LIST_PRODUCTS -> presentProductSearch();
+            case RESERVATION -> presentProductReservation();
+        }
+    }
+
+    private void presentProductReservation() {
+        Scanner scanner = new Scanner(System.in);
+        try {
+            System.out.println(Messages.ENTER_PRODUCT_ID.getMessage());
+            UUID productId = UUID.fromString(scanner.nextLine());
+            System.out.print(Messages.PRODUCT_RESERVATION_HERO.getMessage());
+            int response = scanner.nextInt();
+            if(response == 1) {
+                System.out.println(Messages.ENTER_QUANTITY.getMessage());
+                int quantity = scanner.nextInt();
+                ReserveQuantityDTO reserveQuantityDTO = new ReserveQuantityDTO(productId, quantity);
+                List<String> failedValidations = reserver.reserveQuantity(reserveQuantityDTO).get();
+                if(failedValidations.isEmpty()) {
+                    System.out.println(Messages.SUCCESSFUL_LIBERATION.getMessage());
+                } else {
+                    shouldFailureReasons(Messages.RESERVATION_FAILURE.getMessage(), failedValidations);
+                }
+                return;
+            }
+            if(response == 2) {
+                List<String> failedValidations = reserver.releaseReservation(productId).get();
+                if(failedValidations.isEmpty()) {
+                    System.out.println(Messages.SUCCESSFUL_LIBERATION.getMessage());
+                } else {
+                    shouldFailureReasons(Messages.RESERVATION_FAILURE.getMessage(), failedValidations);
+                }
+                return;
+            }
+            System.err.println(Messages.RESERVATION_OPTIONS);
+            presentProductReservation();
+        } catch (InputMismatchException | IllegalArgumentException e) {
+            System.err.println(Messages.ENTER_CORRECT_DATA.getMessage());
+        } catch (ExecutionException | InterruptedException e) {
+            System.err.println("No se ha podido modificar la reserva del producto.");
         }
     }
 
     private void presentProductSearch() {
         Scanner scanner = new Scanner(System.in);
         ProductSearchFilters.ProductSearchFiltersBuilder filter = ProductSearchFilters.builder();
-        System.out.print("¿desea hacer una búsqueda filtrada (Y)? ");
+        System.out.print(Messages.SEARCH_TYPES_DESCRIPTION.getMessage());
         try {
             boolean filterQuery = scanner.nextLine().equalsIgnoreCase("Y");
             if(filterQuery) {
-                System.out.print("¿desea filtrar por categoría (Y)? ");
+                System.out.print(Messages.FILTER_BY_CATEGORY_QUESTION);
                 if(scanner.nextLine().equalsIgnoreCase("Y")) {
                     System.out.print(Messages.ENTER_CATEGORY.getMessage());
                     filter.category(scanner.nextLine());
                 }
-                System.out.print("¿desea filtrar por rango de precio (Y)? ");
+                System.out.print(Messages.FILTER_BY_PRICE_QUESTION);
                 if(scanner.nextLine().equalsIgnoreCase("Y")) {
                     System.out.print(Messages.ENTER_LOWER_PRICE_RANGE_BOUND.getMessage());
                     double lowerBound = scanner.nextDouble();
@@ -60,18 +101,20 @@ public class Console implements Presentation {
             }
             List<ProductSearchDTO> searchResult = productSearchEngine.findBy(filter.build()).get();
             if(searchResult.isEmpty()) {
-                System.out.println("No se han encontrado registros");
+                System.out.println(Messages.REGISTRIES_NOT_FOUND);
                 return;
             }
             NumberFormat numberFormat = NumberFormat.getCurrencyInstance(Locale.of("es", "CO"));
             for (ProductSearchDTO item : searchResult) {
-                System.out.printf("id: %s, Nombre: %s, Categoría: %s, Cantidad: %d, Precio: %s%n", item.id(), item.name(), item.category(), item.quantity(), numberFormat.format(item.price()));
+                System.out.printf(Messages.PRODUCT_DESCRIPTION.getMessage(), item.id(), item.name(), item.category(), item.quantity(), numberFormat.format(item.price()));
                 System.out.println(Messages.DIVIDER.getMessage());
             }
         } catch (InterruptedException | ExecutionException e) {
-            System.err.println("Ha ocurrido un error consultando los productos. Intenta más tarde.");
+            System.err.println(Messages.PRODUCT_SEARCH_ERROR);
         } catch (ProductPriceRangeException e) {
-            System.err.printf("No se ha podido establecer el rango de precios. Razón: %s%n", e.getMessage());
+            System.err.printf(Messages.PRODUCT_PRICE_RANGE_ERROR.getMessage(), e.getMessage());
+        } catch (InputMismatchException | IllegalArgumentException e) {
+            System.err.println(Messages.ENTER_CORRECT_DATA.getMessage());
         }
     }
 

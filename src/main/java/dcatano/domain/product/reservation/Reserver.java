@@ -4,6 +4,7 @@ import dcatano.domain.observer.EventType;
 import dcatano.domain.product.Product;
 import dcatano.domain.product.ProductRepository;
 import dcatano.domain.product.ValidationError;
+import dcatano.domain.product.update.IProductUpdater;
 import dcatano.domain.product.update.ProductUpdateDTO;
 import dcatano.domain.product.update.ProductUpdater;
 import lombok.NonNull;
@@ -18,11 +19,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 @RequiredArgsConstructor
-public class Reserver {
+public class Reserver implements IReserver {
     private final ProductRepository productRepository;
-    private final ProductUpdater productUpdater;
+    private final IProductUpdater productUpdater;
     private final ReserverRepository reserverRepository;
 
+    @Override
     public CompletableFuture<List<String>> reserveQuantity(ReserveQuantityDTO reserveQuantityDTO) {
         return CompletableFuture.supplyAsync(() -> {
             List<ValidationError> validationErrors = validateUpdateFields(reserveQuantityDTO);
@@ -45,6 +47,7 @@ public class Reserver {
         });
     }
 
+    @Override
     public CompletableFuture<List<String>> releaseReservation(UUID productId) {
         return CompletableFuture.supplyAsync(() -> {
             Optional<Reservation> optionalReservation = reserverRepository.findByProductId(productId);
