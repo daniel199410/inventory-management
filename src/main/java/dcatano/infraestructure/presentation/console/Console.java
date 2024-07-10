@@ -4,6 +4,8 @@ import dcatano.domain.observer.EventType;
 import dcatano.domain.product.creation.IProductCreator;
 import dcatano.domain.product.creation.ProductCreatorDTO;
 import dcatano.domain.product.search.IProductSearchEngine;
+import dcatano.domain.product.search.PriceRangeFilter;
+import dcatano.domain.product.search.ProductPriceRangeException;
 import dcatano.domain.product.search.ProductSearchDTO;
 import dcatano.domain.product.search.ProductSearchFilters;
 import dcatano.domain.product.update.IProductUpdater;
@@ -36,9 +38,27 @@ public class Console implements Presentation {
     }
 
     private void presentProductSearch() {
-        System.out.println();
+        Scanner scanner = new Scanner(System.in);
+        ProductSearchFilters.ProductSearchFiltersBuilder filter = ProductSearchFilters.builder();
+        System.out.print("¿desea hacer una búsqueda filtrada (Y)? ");
         try {
-            List<ProductSearchDTO> searchResult = productSearchEngine.findBy(ProductSearchFilters.builder().build()).get();
+            boolean filterQuery = scanner.nextLine().equalsIgnoreCase("Y");
+            if(filterQuery) {
+                System.out.print("¿desea filtrar por categoría (Y)? ");
+                if(scanner.nextLine().equalsIgnoreCase("Y")) {
+                    System.out.print(Messages.ENTER_CATEGORY.getMessage());
+                    filter.category(scanner.nextLine());
+                }
+                System.out.print("¿desea filtrar por rango de precio (Y)? ");
+                if(scanner.nextLine().equalsIgnoreCase("Y")) {
+                    System.out.print(Messages.ENTER_LOWER_PRICE_RANGE_BOUND.getMessage());
+                    double lowerBound = scanner.nextDouble();
+                    System.out.print(Messages.ENTER_UPPER_PRICE_RANGE_BOUND.getMessage());
+                    double upperBound = scanner.nextDouble();
+                    filter.priceRangeFilter(new PriceRangeFilter(lowerBound, upperBound));
+                }
+            }
+            List<ProductSearchDTO> searchResult = productSearchEngine.findBy(filter.build()).get();
             if(searchResult.isEmpty()) {
                 System.out.println("No se han encontrado registros");
                 return;
@@ -50,6 +70,8 @@ public class Console implements Presentation {
             }
         } catch (InterruptedException | ExecutionException e) {
             System.err.println("Ha ocurrido un error consultando los productos. Intenta más tarde.");
+        } catch (ProductPriceRangeException e) {
+            System.err.printf("No se ha podido establecer el rango de precios. Razón: %s%n", e.getMessage());
         }
     }
 

@@ -11,12 +11,14 @@ public enum Messages {
     DIVIDER("------------------------------------------------------------------------------------------------------"),
     ENTER_CATEGORY("Ingresa la categoría: "),
     ENTER_CORRECT_DATA("Ingresa los datos correctos"),
+    ENTER_LOWER_PRICE_RANGE_BOUND("Ingresa el rango inferior de precios: "),
     ENTER_NAME("Ingresa el nombre: "),
     ENTER_PRICE("Ingresa el precio: "),
     ENTER_PRODUCT_ID("Ingresa el identificador del producto: "),
     ENTER_QUANTITY("Ingresa la cantidad: "),
     ENTER_RECHARGE("Ingresa en cuánto se debe reabastecer el producto cuando alcance el umbral de auto abastecimiento: "),
     ENTER_THRESHOLD("Ingresa la cantidad para la cual cuando llegue el producto a esta se reabastezca: "),
+    ENTER_UPPER_PRICE_RANGE_BOUND("Ingresa el rango superior de precios: "),
     HELLO("""
         ------------------------------------------------
         -      Bienvenido al sistema de inventario     -

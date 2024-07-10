@@ -4,13 +4,13 @@ import dcatano.domain.observer.Event;
 import dcatano.domain.observer.EventListener;
 import dcatano.domain.observer.EventType;
 import dcatano.domain.product.Product;
+import dcatano.domain.product.update.IProductUpdater;
 import dcatano.domain.product.update.ProductUpdateDTO;
-import dcatano.domain.product.update.ProductUpdater;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class Supplier implements EventListener<Product> {
-    private final ProductUpdater productUpdater;
+    private final IProductUpdater productUpdater;
 
     @Override
     public void update(EventType eventType, Event<Product> product) {
@@ -26,6 +26,6 @@ public class Supplier implements EventListener<Product> {
     private boolean shouldSupply(EventType eventType, Product product) {
         return EventType.UPDATE.equals(eventType) &&
             product.getSupply() != null &&
-            product.getSupply().threshold() > product.getQuantity();
+            product.getSupply().threshold() >= product.getQuantity();
     }
 }
