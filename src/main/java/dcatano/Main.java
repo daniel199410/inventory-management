@@ -3,27 +3,36 @@ package dcatano;
 import dcatano.domain.observer.EventType;
 import dcatano.domain.observer.product.ProductEvent;
 import dcatano.domain.product.ProductRepository;
+import dcatano.domain.product.creation.IProductCreator;
 import dcatano.domain.product.creation.ProductCreator;
-import dcatano.domain.product.creation.ProductCreatorDTO;
+import dcatano.domain.product.elimination.ProductQuantityListener;
 import dcatano.domain.product.transaction.TransactionProductListener;
 import dcatano.domain.product.transaction.TransactionRepository;
-import dcatano.domain.product.update.ProductUpdateDTO;
-import dcatano.domain.product.update.ProductUpdater;
 import dcatano.infraestructure.persistance.inmemory.product.InMemoryProductRepository;
 import dcatano.infraestructure.persistance.inmemory.product.transaction.InMemoryTransactionRepository;
-
-import java.util.UUID;
+import dcatano.infraestructure.presentation.Presentation;
+import dcatano.infraestructure.presentation.Presenter;
+import dcatano.infraestructure.presentation.console.Console;
 
 public class Main {
+    static ProductRepository productRepository = new InMemoryProductRepository();
+
     public static void main(String[] args) {
-        ProductRepository productRepository = new InMemoryProductRepository();
+        ProductEvent productEvent = setUpProductEvent();
+        IProductCreator productCreator = new ProductCreator(productRepository, productEvent);
+        Presentation presentation = new Console(productCreator);
+        Presenter presenter = new Presenter(presentation);
+        presenter.present();
+    }
+
+    private static ProductEvent setUpProductEvent() {
         TransactionRepository transactionRepository = new InMemoryTransactionRepository();
+        TransactionProductListener transactionProductListener = new TransactionProductListener(transactionRepository);
         ProductEvent productEvent = new ProductEvent();
-        productEvent.getEventManager().subscribe(EventType.CREATION, new TransactionProductListener(transactionRepository));
-        productEvent.getEventManager().subscribe(EventType.UPDATE, new TransactionProductListener(transactionRepository));
-        ProductCreator productCreator = new ProductCreator(productRepository, productEvent);
-        ProductUpdater productUpdater = new ProductUpdater(productRepository, productEvent);
-        productCreator.create(new ProductCreatorDTO("a", "a", 1, null, null, 1.0));
-        productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(UUID.randomUUID(), 10, 1.0), EventType.UPDATE);
+        productEvent.getEventManager().subscribe(EventType.CREATION,transactionProductListener);
+        productEvent.getEventManager().subscribe(EventType.UPDATE, transactionProductListener);
+        productEvent.getEventManager().subscribe(EventType.ELIMINATION, transactionProductListener);
+        productEvent.getEventManager().subscribe(EventType.UPDATE, new ProductQuantityListener(productRepository, productEvent));
+        return productEvent;
     }
 }

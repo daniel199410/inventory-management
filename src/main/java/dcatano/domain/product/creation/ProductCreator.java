@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
-public class ProductCreator {
+public class ProductCreator implements IProductCreator {
     private final ProductRepository productRepository;
     private final EventPublisher<Product> eventPublisher;
 
