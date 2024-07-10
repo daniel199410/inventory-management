@@ -3,13 +3,18 @@ package dcatano.infraestructure.presentation.console;
 import dcatano.domain.observer.EventType;
 import dcatano.domain.product.creation.IProductCreator;
 import dcatano.domain.product.creation.ProductCreatorDTO;
+import dcatano.domain.product.search.IProductSearchEngine;
+import dcatano.domain.product.search.ProductSearchDTO;
+import dcatano.domain.product.search.ProductSearchFilters;
 import dcatano.domain.product.update.IProductUpdater;
 import dcatano.domain.product.update.ProductUpdateDTO;
 import dcatano.infraestructure.presentation.Presentation;
 import lombok.RequiredArgsConstructor;
 
+import java.text.NumberFormat;
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.UUID;
@@ -19,12 +24,32 @@ import java.util.concurrent.ExecutionException;
 public class Console implements Presentation {
     private final IProductCreator productCreator;
     private final IProductUpdater productUpdater;
+    private final IProductSearchEngine productSearchEngine;
 
     @Override
     public void executeAction(Options option) {
         switch (option) {
             case ADD_PRODUCT -> presentProductCreation();
             case UPDATE_PRODUCT -> presentProductUpdate();
+            case LIST_PRODUCTS -> presentProductSearch();
+        }
+    }
+
+    private void presentProductSearch() {
+        System.out.println();
+        try {
+            List<ProductSearchDTO> searchResult = productSearchEngine.findBy(ProductSearchFilters.builder().build()).get();
+            if(searchResult.isEmpty()) {
+                System.out.println("No se han encontrado registros");
+                return;
+            }
+            NumberFormat numberFormat = NumberFormat.getCurrencyInstance(Locale.of("es", "CO"));
+            for (ProductSearchDTO item : searchResult) {
+                System.out.printf("id: %s, Nombre: %s, Categoría: %s, Cantidad: %d, Precio: %s%n", item.id(), item.name(), item.category(), item.quantity(), numberFormat.format(item.price()));
+                System.out.println(Messages.DIVIDER.getMessage());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            System.err.println("Ha ocurrido un error consultando los productos. Intenta más tarde.");
         }
     }
 

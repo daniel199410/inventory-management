@@ -14,7 +14,7 @@ import static org.mockito.Mockito.mock;
 
 public class ProductSearchEngineTest {
     private final ProductRepository productRepository = mock(ProductRepository.class);
-    private final ProductSearchEngine productSearchEngine = new ProductSearchEngine(productRepository);
+    private final IProductSearchEngine productSearchEngine = new ProductSearchEngine(productRepository);
 
     @Test
     void shouldSearchProducts() throws ProductPriceRangeException, ExecutionException, InterruptedException {

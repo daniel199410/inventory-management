@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 public enum Messages {
     AUTO_SUPPLY("¿deseas que el producto se abastezca automáticamente? (Escribe Y en caso de ser afirmativo): "),
     BYE("Adiós"),
+    DIVIDER("------------------------------------------------------------------------------------------------------"),
     ENTER_CATEGORY("Ingresa la categoría: "),
     ENTER_CORRECT_DATA("Ingresa los datos correctos"),
     ENTER_NAME("Ingresa el nombre: "),

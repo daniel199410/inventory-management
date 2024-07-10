@@ -1,7 +1,6 @@
 package dcatano.domain.product.search;
 
 import dcatano.domain.product.Product;
-import lombok.EqualsAndHashCode;
 
 import java.util.UUID;
 

@@ -8,9 +8,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
-public class ProductSearchEngine {
+public class ProductSearchEngine implements IProductSearchEngine {
     private final ProductRepository productRepository;
 
+    @Override
     public CompletableFuture<List<ProductSearchDTO>> findBy(ProductSearchFilters productSearchFilters) {
         return CompletableFuture.supplyAsync(() -> {
             List<Product> products = productRepository.findByFilter(productSearchFilters);

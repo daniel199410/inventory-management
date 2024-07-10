@@ -6,6 +6,8 @@ import dcatano.domain.product.ProductRepository;
 import dcatano.domain.product.creation.IProductCreator;
 import dcatano.domain.product.creation.ProductCreator;
 import dcatano.domain.product.elimination.ProductQuantityListener;
+import dcatano.domain.product.search.IProductSearchEngine;
+import dcatano.domain.product.search.ProductSearchEngine;
 import dcatano.domain.product.transaction.TransactionProductListener;
 import dcatano.domain.product.transaction.TransactionRepository;
 import dcatano.domain.product.update.IProductUpdater;
@@ -23,7 +25,8 @@ public class Main {
         ProductEvent productEvent = setUpProductEvent();
         IProductCreator productCreator = new ProductCreator(productRepository, productEvent);
         IProductUpdater productUpdater = new ProductUpdater(productRepository, productEvent);
-        Presentation presentation = new Console(productCreator, productUpdater);
+        IProductSearchEngine productSearchEngine = new ProductSearchEngine(productRepository);
+        Presentation presentation = new Console(productCreator, productUpdater, productSearchEngine);
         Presenter presenter = new Presenter(presentation);
         presenter.present();
     }
