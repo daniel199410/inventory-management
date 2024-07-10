@@ -8,6 +8,8 @@ import dcatano.domain.product.creation.ProductCreator;
 import dcatano.domain.product.elimination.ProductQuantityListener;
 import dcatano.domain.product.transaction.TransactionProductListener;
 import dcatano.domain.product.transaction.TransactionRepository;
+import dcatano.domain.product.update.IProductUpdater;
+import dcatano.domain.product.update.ProductUpdater;
 import dcatano.infraestructure.persistance.inmemory.product.InMemoryProductRepository;
 import dcatano.infraestructure.persistance.inmemory.product.transaction.InMemoryTransactionRepository;
 import dcatano.infraestructure.presentation.Presentation;
@@ -20,7 +22,8 @@ public class Main {
     public static void main(String[] args) {
         ProductEvent productEvent = setUpProductEvent();
         IProductCreator productCreator = new ProductCreator(productRepository, productEvent);
-        Presentation presentation = new Console(productCreator);
+        IProductUpdater productUpdater = new ProductUpdater(productRepository, productEvent);
+        Presentation presentation = new Console(productCreator, productUpdater);
         Presenter presenter = new Presenter(presentation);
         presenter.present();
     }

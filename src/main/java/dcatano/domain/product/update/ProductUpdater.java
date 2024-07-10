@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
-public class ProductUpdater {
+public class ProductUpdater implements IProductUpdater{
     private final ProductRepository productRepository;
     private final EventPublisher<Product> eventPublisher;
 
@@ -36,7 +36,7 @@ public class ProductUpdater {
                     optionalProduct.get().getId(),
                     optionalProduct.get().getName(),
                     optionalProduct.get().getCategory(),
-                    productUpdateDTO.quantity() + optionalProduct.get().getQuantity(),
+                    Optional.ofNullable(productUpdateDTO.quantity()).orElse(optionalProduct.get().getQuantity()),
                     Optional.ofNullable(optionalProduct.get().getSupply()).map(supply -> new Supply(supply.threshold(), supply.recharge())).orElse(null),
                     Optional.ofNullable(productUpdateDTO.price()).orElse(optionalProduct.get().getPrice()),
                     optionalProduct.get().getVersion()

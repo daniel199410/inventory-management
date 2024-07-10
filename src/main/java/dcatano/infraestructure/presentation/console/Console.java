@@ -1,7 +1,10 @@
 package dcatano.infraestructure.presentation.console;
 
+import dcatano.domain.observer.EventType;
 import dcatano.domain.product.creation.IProductCreator;
 import dcatano.domain.product.creation.ProductCreatorDTO;
+import dcatano.domain.product.update.IProductUpdater;
+import dcatano.domain.product.update.ProductUpdateDTO;
 import dcatano.infraestructure.presentation.Presentation;
 import lombok.RequiredArgsConstructor;
 
@@ -9,15 +12,41 @@ import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 @RequiredArgsConstructor
 public class Console implements Presentation {
     private final IProductCreator productCreator;
+    private final IProductUpdater productUpdater;
 
     @Override
     public void executeAction(Options option) {
         switch (option) {
             case ADD_PRODUCT -> presentProductCreation();
+            case UPDATE_PRODUCT -> presentProductUpdate();
+        }
+    }
+
+    private void presentProductUpdate() {
+        try {
+            Scanner scanner = new Scanner(System.in);
+            System.out.print(Messages.ENTER_PRODUCT_ID.getMessage());
+            UUID productId = UUID.fromString(scanner.nextLine());
+            System.out.print(Messages.ENTER_QUANTITY.getMessage());
+            int quantity = scanner.nextInt();
+            System.out.print(Messages.ENTER_PRICE.getMessage());
+            double price = scanner.nextDouble();
+            List<String> failedValidations = productUpdater.updateQuantityAndPrice(new ProductUpdateDTO(productId, quantity, price), EventType.UPDATE).get();
+            if(failedValidations.isEmpty()) {
+                System.out.println(Messages.PRODUCT_CREATED.getMessage());
+                return;
+            }
+            shouldFailureReasons(Messages.PRODUCT_NOT_UPDATED.getMessage(), failedValidations);
+        } catch (ExecutionException | InterruptedException e) {
+            System.err.println("No se ha podido actualizar el producto.");
+        } catch (InputMismatchException | IllegalArgumentException e) {
+            System.err.println(Messages.ENTER_CORRECT_DATA.getMessage());
         }
     }
 
@@ -48,8 +77,7 @@ public class Console implements Presentation {
                 System.out.println(Messages.PRODUCT_CREATED.getMessage());
                 return;
             }
-            System.err.println(Messages.PRODUCT_NOT_CREATED.getMessage());
-            failedValidations.forEach(v -> System.err.printf("-- %s%n", v));
+            shouldFailureReasons(Messages.PRODUCT_NOT_CREATED.getMessage(), failedValidations);
         } catch (InputMismatchException | NumberFormatException e) {
             System.err.println(Messages.ENTER_CORRECT_DATA.getMessage());
         }
@@ -85,5 +113,10 @@ public class Console implements Presentation {
             System.err.println(Messages.ENTER_CORRECT_DATA.getMessage());
             return Optional.empty();
         }
+    }
+
+    private void shouldFailureReasons(String message, List<String> failedValidations) {
+        System.err.println(message);
+        failedValidations.forEach(v -> System.err.printf("-- %s%n", v));
     }
 }
